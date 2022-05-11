@@ -2,6 +2,8 @@
 
 This is a starter contract for accessing flash liquidity from Aave V3 testnet markets, there are two variants: simple (for borrowing a single asset) and batch (multiple assets). These contracts use the Aave Faucet to cover the 0.07% fee, simplifying the process of running your first transaction. Once you've added and tested your logic on testnet, you'll need to remove the references to the FAUCET from your contract before deploying to mainnet.
 
+For more instructions on deploying a contract in Remix, check out this [awesome guide](https://docs.chain.link/docs/deploy-your-first-contract/) from Chainlink.
+
 ## Steps
 
 - 1.) Open contract in remix:
