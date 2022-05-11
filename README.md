@@ -5,8 +5,8 @@ This is a starter contract for accessing flash liquidity from Aave V3 testnet ma
 ## Steps
 
 - 1.) Open contract in remix:
-    - Batch 
-    - Simple
+    - [Batch](https://remix.ethereum.org/#url=https://github.com/defispartan/hackmoney-demo/blob/main/MyBatchFlashloanV3.sol) 
+    - [Simple](https://remix.ethereum.org/#url=https://github.com/defispartan/hackmoney-demo/blob/main/MySimpleFlashloanV3.sol)
 - 2.) Deploy to any network, passing in the addresses below to the constructor
 - 3.) Pick an asset and amount \*
 - 4.) Call `executeFlashloan` with parameters from step 3
