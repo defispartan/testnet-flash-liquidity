@@ -103,3 +103,4 @@ contract MyBatchFlashLoanV3 is FlashLoanReceiverBase {
             referralCode
         );
     }
+}
