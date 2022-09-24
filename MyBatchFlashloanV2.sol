@@ -98,7 +98,7 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
 
     /**
      * @notice Helper function to return all assets in the LendingPool
-     * @return Array of available assets
+     * @return array of available assets
      */
     function getAvailableAssets() 
       public
@@ -111,7 +111,8 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
 
     /**
      * @notice Helper function to return relavent fields about an asset for flashloan transactions 
-     * @return AvailableReserve struct 
+     * @param asset Underlying asset to fetch reserve data for
+     * @return AvailableReserve struct of asset data
      */
     function getReserveData(address asset)
       public
@@ -151,6 +152,7 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
 
     /**
      * @notice Alternate entry point, flashloans maximum amount of each asset
+     * @param assets array of underlying asset addresses to flashloan
      */
     function executeMaxFlashLoan(
         address[] memory assets
@@ -185,6 +187,8 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
 
     /**
      * @notice Generic entry point, specify assets and amounts to flashloan
+     * @param assets array of underlying asset addresses to flashloan
+     * @param amounts array of amounts to borrow, corresponds with assets array
      */
     function executeFlashLoan(
         address[] memory assets,
