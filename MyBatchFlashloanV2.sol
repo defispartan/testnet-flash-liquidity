@@ -15,7 +15,9 @@ import { SafeMath } from 'https://github.com/aave/protocol-v2/contracts/dependen
 import { DataTypes } from 'https://github.com/aave/protocol-v2/contracts/protocol/libraries/types/DataTypes.sol';
 import { ReserveConfiguration } from 'https://github.com/aave/protocol-v2/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
 
-/// @dev Used to mint tokens from Aave faucets to cover flashloan fee, for testnet development only
+/**
+ * @dev Used to mint tokens from Aave faucets to cover flashloan fee, for testnet development only
+ */
 interface IFaucet {
     function mint(
         address _token,
@@ -43,7 +45,7 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
  * @author DeFiSpartan
  * @title Aave flashloan starter kit for testnet development
  * @notice Never keep funds permanently on your FlashLoanReceiverBase contract as they could be exposed to a 'griefing' attack, where the stored funds are used by an attacker.
- **/
+ */
 contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     using SafeMath for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -63,7 +65,7 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     /**
      * @notice Flashloan receiver, not called directly
      * @return `true` if transaction is succesful
-     **/
+     */
     function executeOperation(
         address[] calldata assets,
         uint256[] calldata amounts,
@@ -97,7 +99,7 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     /**
      * @notice Helper function to return all assets in the LendingPool
      * @return Array of available assets
-     **/
+     */
     function getAvailableAssets() 
       public
       view
@@ -110,7 +112,7 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     /**
      * @notice Helper function to return relavent fields about an asset for flashloan transactions 
      * @return AvailableReserve struct 
-     **/
+     */
     function getReserveData(address asset)
       public
       view
@@ -149,7 +151,7 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
 
     /**
      * @notice Alternate entry point, flashloans maximum amount of each asset
-     **/
+     */
     function executeMaxFlashLoan(
         address[] memory assets
     ) public {
@@ -182,8 +184,8 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     }
 
     /**
-     * Generic entry point, specify assets and amounts to flashloan
-     **/
+     * @notice Generic entry point, specify assets and amounts to flashloan
+     */
     function executeFlashLoan(
         address[] memory assets,
         uint256[] memory amounts
