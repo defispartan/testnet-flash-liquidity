@@ -11,7 +11,6 @@ import { IFlashLoanReceiver } from 'https://github.com/aave/protocol-v2/contract
 import { IERC20 } from 'https://github.com/aave/protocol-v2/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 import { SafeERC20 } from 'https://github.com/aave/protocol-v2/contracts/dependencies/openzeppelin/contracts/SafeERC20.sol';
 import { SafeMath } from 'https://github.com/aave/protocol-v2/contracts/dependencies/openzeppelin/contracts/SafeMath.sol';
-import { AaveV2Ethereum, AaveV2EthereumARC, AaveV2Polygon, AaveV2Avalanche, AaveV2Goerli, AaveV2Mumbai, AaveV2Fuji } from "aave-address-book/AaveAddressBook.sol"
 
 interface IFaucet {
     function mint(
@@ -45,9 +44,7 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
 contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     using SafeMath for uint256;
 
-    constructor(string market) FlashLoanReceiverBase(market) public {
-        
-    }
+    constructor(ILendingPoolAddressesProvider _addressProvider, IFaucet _faucet) FlashLoanReceiverBase(_addressProvider, _faucet) public {}
 
     /**
         This function is called after your contract has received the flash loaned amount
@@ -83,10 +80,6 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
 
         return true;
     }
-
-    function getMaxAvailable(
-
-    )
 
     function executeFlashLoan(
         address[] memory assets,
