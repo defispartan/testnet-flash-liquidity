@@ -25,13 +25,15 @@ interface IFaucet {
     ) external;
 }
 
+/**
+ * @dev abstract definition of batch flashloan receiver contract
+ */
 abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
 
   ILendingPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
   ILendingPool public immutable override LENDING_POOL;
-
   IFaucet public immutable FAUCET;
 
   constructor(ILendingPoolAddressesProvider provider, IFaucet faucet) public {
@@ -43,7 +45,7 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
 
 /**
  * @author DeFiSpartan
- * @title Aave flashloan starter kit for testnet development
+ * @title Aave V2 flashloan starter kit for testnet development
  * @notice Never keep funds permanently on your FlashLoanReceiverBase contract as they could be exposed to a 'griefing' attack, where the stored funds are used by an attacker.
  */
 contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
@@ -56,10 +58,15 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
         uint256 decimals;
         bool borrowingEnabled;
         bool stableBorrowRateEnabled;
-        uint256 availableLiquidity;
+        bool isActive;
+        bool isFrozen;
         uint256 faucetAvailableLiquidty;
+        uint256 availableLiquidity;
     }
 
+    /**
+     * @dev initialize Pool variables
+     */
     constructor(ILendingPoolAddressesProvider _addressProvider, IFaucet _faucet) FlashLoanReceiverBase(_addressProvider, _faucet) public {}
     
     /**
@@ -131,39 +138,31 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
       
       reserveData.symbol = IERC20Detailed(reserveData.underlyingAsset).symbol();
       reserveData.decimals = IERC20Detailed(reserveData.underlyingAsset).decimals();
-      bool isActive;
-      bool isFrozen;
       (
-        isActive,
-        isFrozen,
+        reserveData.isActive,
+        reserveData.isFrozen,
         reserveData.borrowingEnabled,
         reserveData.stableBorrowRateEnabled
       ) = baseData.configuration.getFlagsMemory();
 
       reserveData.faucetAvailableLiquidty = type(uint256).max - IERC20(reserveData.underlyingAsset).totalSupply();
 
-      if(!isActive || isFrozen || !reserveData.borrowingEnabled){
+      if(!reserveData.isActive || reserveData.isFrozen || !reserveData.borrowingEnabled){
         reserveData.availableLiquidity = 0;
       }
 
       return reserveData;
   }
 
-
     /**
-     * @notice Alternate entry point, flashloans maximum amount of each asset
+     * @notice Generic entry point, specify assets and amounts to flashloan
      * @param assets array of underlying asset addresses to flashloan
+     * @param amounts array of amounts to borrow, corresponds with assets array
      */
-    function executeMaxFlashLoan(
-        address[] memory assets
+    function executeFlashLoan(
+        address[] memory assets,
+        uint256[] memory amounts
     ) public {
-        uint256[] memory amounts = new uint256[](assets.length);
-        for (uint256 i = 0; i < assets.length; i++) {
-          address asset = assets[i];
-          AvailableReserve memory reserveData = getReserveData(asset);
-          amounts[i] = reserveData.availableLiquidity <= reserveData.faucetAvailableLiquidty ? reserveData.availableLiquidity : reserveData.faucetAvailableLiquidty;
-        }
-        
         address receiverAddress = address(this);
 
         // 0 = no debt, 1 = stable, 2 = variable
@@ -186,14 +185,19 @@ contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     }
 
     /**
-     * @notice Generic entry point, specify assets and amounts to flashloan
+     * @notice Alternate entry point, flashloans maximum amount of each asset
      * @param assets array of underlying asset addresses to flashloan
-     * @param amounts array of amounts to borrow, corresponds with assets array
      */
-    function executeFlashLoan(
-        address[] memory assets,
-        uint256[] memory amounts
+    function executeMaxFlashLoan(
+        address[] memory assets
     ) public {
+        uint256[] memory amounts = new uint256[](assets.length);
+        for (uint256 i = 0; i < assets.length; i++) {
+          address asset = assets[i];
+          AvailableReserve memory reserveData = getReserveData(asset);
+          amounts[i] = reserveData.availableLiquidity <= reserveData.faucetAvailableLiquidty ? reserveData.availableLiquidity : reserveData.faucetAvailableLiquidty;
+        }
+        
         address receiverAddress = address(this);
 
         // 0 = no debt, 1 = stable, 2 = variable
