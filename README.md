@@ -26,6 +26,8 @@ Note: If an asset has a debtCeiling, the max amount available to borrow will be 
 
 ### PoolAddressesProvider
 
+- Goerli V2: 0x5E52dEc931FFb32f609681B8438A51c675cc232d
+- Goerli V3: 0xc4dCB5126a3AfEd129BC3668Ea19285A9f56D15D
 - Eth Rinkeby V3: 0xBA6378f1c1D046e9EB0F538560BA7558546edF3C
 - Mumbai V3: 0x5343b5bA672Ae99d627A1C87866b8E53F47Db2E6
 - Fuji V3: 0x1775ECC8362dB6CaB0c7A9C0957cF656A5276c29
@@ -36,6 +38,8 @@ Note: If an asset has a debtCeiling, the max amount available to borrow will be 
 
 ### Aave Faucets
 
+- Goerli V2: 0x681860075529352da2C94082Eb66c59dF958e89C
+- Goerli V3: 0x1ca525Cd5Cb77DB5Fa9cBbA02A0824e283469DBe
 - Eth Rinkeby V3: 0x88138CA1e9E485A1E688b030F85Bb79d63f156BA
 - Mumbai V3: 0xc1eB89DA925cc2Ae8B36818d26E12DDF8F8601b0
 - Fuji V3: 0x127277bF2F5fA186bfC6b3a0ca00baefB5472d3a
