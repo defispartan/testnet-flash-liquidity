@@ -22,19 +22,6 @@ abstract contract FlashLoanSimpleReceiverBase is IFlashLoanSimpleReceiver {
   }
 }
 
-/** 
-    !!!
-    Testnet flash liquidity demo
-
-    Uses faucet of Aave testnet markets to mint flashloan premium. Faucet is limited to 10000 tokens per mint txn
-
-    Contract must have balance > amount + premium after `executeOperation` or execution will revert
-
-    Use access controls to prevent griefing attacks on functions, especially if funds are stored on contract
-
-    https://github.com/bgd-labs/aave-address-book/ contains PoolAddressesProvider, Faucet, and underlying reserve token addresses
-    !!!
- */
 contract MySimpleFlashLoanV3 is FlashLoanSimpleReceiverBase {
     constructor(IPoolAddressesProvider _poolAddressProvider, IFaucet _faucet) FlashLoanSimpleReceiverBase(_poolAddressProvider, _faucet) {}
 
