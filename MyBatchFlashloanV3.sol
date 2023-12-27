@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
-pragma experimental ABIEncoderV2;
 
 
 import {
@@ -9,18 +8,9 @@ import {
 import { IPool } from "https://github.com/aave/aave-v3-core/contracts/interfaces/IPool.sol";
 import { IFlashLoanReceiver } from "https://github.com/aave/aave-v3-core/contracts/flashloan/interfaces/IFlashLoanReceiver.sol";
 import { IERC20 } from "https://github.com/aave/aave-v3-core/contracts/dependencies/openzeppelin/contracts/IERC20.sol";
-import { SafeMath } from "https://github.com/aave/aave-v3-core/contracts/dependencies/openzeppelin/contracts/SafeMath.sol";
-
-interface IFaucet {
-    function mint(
-        address _token,
-        uint256 _amount
-    ) external;
-}
+import { IFaucet } from "https://github.com/aave/aave-v3-periphery/contracts/mocks/testnet-helpers/IFaucet.sol";
 
 abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
-  using SafeMath for uint256;
-
   IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
   IPool public immutable override POOL;
   IFaucet public immutable FAUCET;
@@ -35,14 +25,25 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
 
 /** 
     !!!
-    Never keep funds permanently on your FlashLoanReceiverBase contract as they could be 
-    exposed to a 'griefing' attack, where the stored funds are used by an attacker.
+    Testnet flash liquidity demo
+
+    Uses faucet of Aave testnet markets to mint flashloan premium. Faucet is limited to 10000 tokens per mint txn
+
+    Contract must have balance > amount + premium after `executeOperation` or execution will revert
+
+    Use access controls to prevent griefing attacks on functions, especially if funds are stored on contract
+
+    https://github.com/bgd-labs/aave-address-book/ contains PoolAddressesProvider, Faucet, and underlying reserve token addresses
     !!!
  */
 contract MyBatchFlashLoanV3 is FlashLoanReceiverBase {
-    using SafeMath for uint256;
+    constructor(IPoolAddressesProvider _poolAddressesProvider, IFaucet _faucet) FlashLoanReceiverBase(_poolAddressesProvider, _faucet) {}
 
-    constructor(IPoolAddressesProvider _addressProvider, IFaucet _faucet) FlashLoanReceiverBase(_addressProvider, _faucet) {}
+    // Modifier to restrict access to the Pool
+    modifier onlyPool() {
+        require(msg.sender == address(POOL), "Caller is not the Pool");
+        _;
+    }
 
     /**
         This function is called after your contract has received the flash loaned amount
@@ -56,6 +57,7 @@ contract MyBatchFlashLoanV3 is FlashLoanReceiverBase {
     )
         external
         override
+        onlyPool
         returns (bool)
     {
 
@@ -69,10 +71,10 @@ contract MyBatchFlashLoanV3 is FlashLoanReceiverBase {
         // Therefore ensure your contract has enough to repay
         // these amounts.
 
-        // Approve the LendingPool contract allowance to *pull* the owed amount
+        // Approve the Pool contract allowance to *pull* the owed amount
         for (uint i = 0; i < assets.length; i++) {
-            uint amountOwed = amounts[i].add(premiums[i]);
-            FAUCET.mint(assets[i],premiums[i]);
+            uint amountOwed = amounts[i] + premiums[i];
+            FAUCET.mint(assets[i], address(this), premiums[i]);
             IERC20(assets[i]).approve(address(POOL), amountOwed);
         }
 
@@ -80,7 +82,7 @@ contract MyBatchFlashLoanV3 is FlashLoanReceiverBase {
     }
 
     function executeFlashLoan(
-        address[] memory assets,
+        address[] memory underlyingTokens,
         uint256[] memory amounts
     ) public {
         address receiverAddress = address(this);
@@ -95,7 +97,7 @@ contract MyBatchFlashLoanV3 is FlashLoanReceiverBase {
 
         POOL.flashLoan(
             receiverAddress,
-            assets,
+            underlyingTokens,
             amounts,
             modes,
             onBehalfOf,
