@@ -23,7 +23,7 @@ abstract contract FlashLoanSimpleReceiverBase is IFlashLoanSimpleReceiver {
 }
 
 contract MySimpleFlashLoanV3 is FlashLoanSimpleReceiverBase {
-    constructor(IPoolAddressesProvider _poolAddressProvider, IFaucet _faucet) FlashLoanSimpleReceiverBase(_poolAddressProvider, _faucet) {}
+    constructor(IPoolAddressesProvider _poolAddressesProvider, IFaucet _faucet) FlashLoanSimpleReceiverBase(_poolAddressesProvider, _faucet) {}
 
     // Modifier to restrict access to the Pool
     modifier onlyPool() {
