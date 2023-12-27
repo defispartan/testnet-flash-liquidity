@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
-pragma experimental ABIEncoderV2;
 
 
 import {
@@ -9,18 +8,9 @@ import {
 import { IPool } from "https://github.com/aave/aave-v3-core/contracts/interfaces/IPool.sol";
 import { IFlashLoanSimpleReceiver } from "https://github.com/aave/aave-v3-core/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol";
 import { IERC20 } from "https://github.com/aave/aave-v3-core/contracts/dependencies/openzeppelin/contracts/IERC20.sol";
-import { SafeMath } from "https://github.com/aave/aave-v3-core/contracts/dependencies/openzeppelin/contracts/SafeMath.sol";
-
-interface IFaucet {
-    function mint(
-        address _token,
-        uint256 _amount
-    ) external;
-}
+import { IFaucet } from "https://github.com/aave/aave-v3-periphery/contracts/mocks/testnet-helpers/IFaucet.sol";
 
 abstract contract FlashLoanSimpleReceiverBase is IFlashLoanSimpleReceiver {
-  using SafeMath for uint256;
-
   IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
   IPool public immutable override POOL;
   IFaucet public immutable FAUCET;
@@ -32,20 +22,17 @@ abstract contract FlashLoanSimpleReceiverBase is IFlashLoanSimpleReceiver {
   }
 }
 
-
-/** 
-    !!!
-    Never keep funds permanently on your FlashLoanSimpleReceiverBase contract as they could be 
-    exposed to a 'griefing' attack, where the stored funds are used by an attacker.
-    !!!
- */
 contract MySimpleFlashLoanV3 is FlashLoanSimpleReceiverBase {
-    using SafeMath for uint256;
+    constructor(IPoolAddressesProvider _poolAddressesProvider, IFaucet _faucet) FlashLoanSimpleReceiverBase(_poolAddressesProvider, _faucet) {}
 
-    constructor(IPoolAddressesProvider _addressProvider, IFaucet _faucet) FlashLoanSimpleReceiverBase(_addressProvider, _faucet) {}
+    // Modifier to restrict access to the Pool
+    modifier onlyPool() {
+        require(msg.sender == address(POOL), "Caller is not the Pool");
+        _;
+    }
 
     /**
-        This function is called after your contract has received the flash loaned amount
+        This function is called after your contract has received the borrowed amount
      */
     function executeOperation(
         address asset,
@@ -56,6 +43,7 @@ contract MySimpleFlashLoanV3 is FlashLoanSimpleReceiverBase {
     )
         external
         override
+        onlyPool
         returns (bool)
     {
 
@@ -69,16 +57,16 @@ contract MySimpleFlashLoanV3 is FlashLoanSimpleReceiverBase {
         // Therefore ensure your contract has enough to repay
         // these amounts.
 
-        // Approve the LendingPool contract allowance to *pull* the owed amount
-        uint amountOwed = amount.add(premium);
-        FAUCET.mint(asset,premium);
+        // Approve the Pool contract allowance to *pull* the owed amount
+        uint amountOwed = amount + premium;
+        FAUCET.mint(asset, address(this), premium);
         IERC20(asset).approve(address(POOL), amountOwed);
 
         return true;
     }
 
     function executeFlashLoan(
-        address asset,
+        address underlyingToken,
         uint256 amount
     ) public {
         address receiverAddress = address(this);
@@ -88,7 +76,7 @@ contract MySimpleFlashLoanV3 is FlashLoanSimpleReceiverBase {
 
         POOL.flashLoanSimple(
             receiverAddress,
-            asset,
+            underlyingToken,
             amount,
             params,
             referralCode

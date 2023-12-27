@@ -34,13 +34,6 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
   }
 }
 
-
-/** 
-    !!!
-    Never keep funds permanently on your FlashLoanReceiverBase contract as they could be 
-    exposed to a 'griefing' attack, where the stored funds are used by an attacker.
-    !!!
- */
 contract MyBatchFlashLoanV2 is FlashLoanReceiverBase {
     using SafeMath for uint256;
 
